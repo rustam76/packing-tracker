@@ -34,52 +34,51 @@ export function CategoryTabs({
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 px-1">
-        <Button
-          variant="ghost"
-          size="sm"
+      <div className="flex items-center gap-sm overflow-x-auto no-scrollbar -mx-margin-mobile px-margin-mobile pb-2">
+        <button
           onClick={() => onSelect(null)}
           className={cn(
-            "rounded-full px-4 border h-8",
+            "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[12px] font-bold uppercase tracking-wider",
             !activeCategoryId
-              ? "bg-primary text-primary-foreground border-primary"
-              : "bg-background border-border"
+              ? "bg-primary text-on-primary shadow-md"
+              : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
           )}
         >
           All
-        </Button>
+        </button>
         {categories.map((category) => (
-          <div
+          <button
             key={category.id}
             onClick={() => onSelect(category.id)}
             className={cn(
-              "flex items-center gap-2 rounded-full px-4 border h-8 cursor-pointer whitespace-nowrap transition-all",
+              "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[12px] font-bold uppercase tracking-wider",
               activeCategoryId === category.id
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background border-border hover:border-primary/50"
+                ? "bg-primary text-on-primary shadow-md"
+                : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
             )}
           >
             <div
               className="h-2 w-2 rounded-full"
               style={{ backgroundColor: category.color }}
             />
-            <span className="text-sm font-medium">{category.name}</span>
-            <div 
+            <span>{category.name}</span>
+            <span 
               onClick={(e) => handleOpenEdit(e, category)}
-              className="ml-1 opacity-50 hover:opacity-100"
+              className={cn(
+                "px-1.5 py-0.5 rounded-full text-[10px] transition-colors",
+                activeCategoryId === category.id ? "bg-white/20" : "bg-surface-container-highest"
+              )}
             >
-              <Settings2 className="h-3 w-3" />
-            </div>
-          </div>
+              <span className="material-symbols-outlined text-[14px]">settings</span>
+            </span>
+          </button>
         ))}
-        <Button
-          variant="outline"
-          size="icon"
+        <button
           onClick={handleOpenCreate}
-          className="rounded-full h-8 w-8 min-w-[32px] border-dashed"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-lowest border border-dashed border-outline-variant text-outline active:scale-90 transition-all shrink-0"
         >
-          <Plus className="h-4 w-4" />
-        </Button>
+          <span className="material-symbols-outlined">add</span>
+        </button>
       </div>
 
       <CategoryDialog

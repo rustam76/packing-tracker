@@ -6,33 +6,43 @@ import { motion } from "framer-motion";
 export function ProgressBar({
   packedCount,
   totalCount,
+  isSticky = false,
 }: {
   packedCount: number;
   totalCount: number;
+  isSticky?: boolean;
 }) {
   const percentage = totalCount > 0 ? (packedCount / totalCount) * 100 : 0;
 
   return (
-    <div className="w-full space-y-2">
-      <div className="flex justify-between items-end">
-        <div className="space-y-0.5">
-          <h3 className="text-sm font-medium text-muted-foreground">Packing Progress</h3>
-          <p className="text-2xl font-bold">
-            {packedCount} <span className="text-muted-foreground text-sm font-normal">of</span> {totalCount}
-          </p>
+    <div className="w-full space-y-lg pt-base">
+      <div className="flex items-end justify-between">
+        <div>
+          <span className="font-heading text-[10px] font-bold text-primary tracking-[0.2em] uppercase block mb-xs">
+            PACKING PROGRESS
+          </span>
+          <h2 className="font-heading text-h1 font-bold text-on-surface">
+            {Math.round(percentage)}% Packed
+          </h2>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-primary">{Math.round(percentage)}%</p>
+          <span className="font-sans text-body-sm text-outline font-medium">
+            {packedCount} of {totalCount} items
+          </span>
         </div>
       </div>
-      <div className="relative h-3 w-full bg-secondary rounded-full overflow-hidden">
-        <motion.div
-          className="absolute h-full bg-primary"
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        />
-      </div>
+      
+      {/* ProgressBar component as used in content cards */}
+      {!isSticky && (
+        <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden shadow-inner">
+          <motion.div
+            className="h-full bg-primary rounded-full shadow-[0_0_12px_rgba(0,88,190,0.3)]"
+            initial={{ width: 0 }}
+            animate={{ width: `${percentage}%` }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </div>
+      )}
     </div>
   );
 }

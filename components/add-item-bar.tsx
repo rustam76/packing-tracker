@@ -48,65 +48,59 @@ export function AddItemBar({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pointer-events-none">
-      <div className="max-w-2xl mx-auto pointer-events-auto h-16 flex items-center gap-2 bg-card border rounded-full px-2 py-2 shadow-2xl backdrop-blur-xl">
+    <div className="fixed bottom-20 left-0 w-full px-margin-mobile z-50 pointer-events-none">
+      <div className="max-w-xl mx-auto pointer-events-auto bg-surface-container border border-outline-variant/30 rounded-full h-14 flex items-center px-md shadow-2xl backdrop-blur-xl">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-             <Button variant="ghost" size="icon" className="rounded-full h-12 w-12 hover:bg-muted shrink-0">
-               <div className="h-4 w-4 rounded-full" style={{ backgroundColor: selectedCategory?.color || '#cbd5e1' }} />
-             </Button>
+             <button className="flex-shrink-0 active:scale-95 transition-transform mr-md">
+               <span className="material-symbols-outlined text-outline" data-icon="add_circle">
+                add_circle
+               </span>
+             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuItem onClick={() => setCategoryId(null)}>No Category</DropdownMenuItem>
+          <DropdownMenuContent align="start" className="w-48 rounded-2xl p-2">
+            <DropdownMenuItem onClick={() => setCategoryId(null)} className="rounded-xl">No Category</DropdownMenuItem>
             {categories.map((cat) => (
-              <DropdownMenuItem key={cat.id} onClick={() => setCategoryId(cat.id)}>
-                <div className="h-3 w-3 rounded-full mr-2" style={{ backgroundColor: cat.color }} />
+              <DropdownMenuItem key={cat.id} onClick={() => setCategoryId(cat.id)} className="rounded-xl flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
                 {cat.name}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Input
-          placeholder={`Add item to ${selectedCategory?.name || 'list'}...`}
+        <input
+          placeholder={`Add to ${selectedCategory?.name || 'Essentials'}...`}
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="border-none bg-transparent shadow-none focus-visible:ring-0 text-base"
+          className="flex-grow bg-transparent border-none focus:ring-0 font-sans text-body-base placeholder:text-outline/60 text-on-surface"
+          disabled={loading}
         />
 
-        <div className="flex items-center gap-1 shrink-0 bg-muted/30 p-1 rounded-full mr-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setOwner("me")}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setOwner(owner === "me" ? "partner" : "me")}
             className={cn(
-              "rounded-full h-8 px-3 text-xs transition-all",
-              owner === "me" ? "bg-blue-500 text-white shadow-sm" : "text-muted-foreground"
+              "px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tighter transition-all",
+              owner === "me" 
+                ? "bg-primary-container text-on-primary-container" 
+                : "bg-secondary-container text-on-secondary-container"
             )}
           >
-            Me
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setOwner("partner")}
-            className={cn(
-              "rounded-full h-8 px-3 text-xs transition-all",
-              owner === "partner" ? "bg-pink-500 text-white shadow-sm" : "text-muted-foreground"
-            )}
+            {owner === "me" ? "Me" : "Partner"}
+          </button>
+          
+          <button
+            onClick={handleAdd}
+            disabled={!name.trim() || loading}
+            className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-lg active:scale-90 transition-all disabled:opacity-50"
           >
-            P
-          </Button>
+            <span className="material-symbols-outlined text-[20px]" data-icon="send">
+              {loading ? "sync" : "send"}
+            </span>
+          </button>
         </div>
-
-        <Button
-          onClick={handleAdd}
-          disabled={!name.trim() || loading}
-          className="rounded-full h-12 w-12 p-0 shadow-lg shrink-0"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
       </div>
     </div>
   );

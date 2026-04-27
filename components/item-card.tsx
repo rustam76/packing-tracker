@@ -47,27 +47,38 @@ export function ItemCard({
   const dragControls = useDragControls();
   const constraintsRef = useRef(null);
 
-  // Track x movement for background opacity
-  const x = useMotionValue(0);
-  const opacity = useTransform(x, [-60, 0], [1, 0]);
+  const status = item.is_packed 
+    ? "packed" 
+    : item.is_prepared 
+      ? "ready" 
+      : "prepare";
 
-  const handleTogglePrepared = async () => {
+  const handleStatusChange = async () => {
     try {
-      await togglePrepared(item.id, !item.is_prepared, tripId);
-      toast.success(item.is_prepared ? "Un-prepared" : "Prepared!");
+      if (status === "prepare") {
+        await togglePrepared(item.id, true, tripId);
+        toast.success("Ready for packing!");
+      } else if (status === "ready") {
+        await togglePacked(item.id, true, tripId);
+        toast.success("Packed!");
+      } else if (status === "packed") {
+        await togglePacked(item.id, false, tripId);
+        toast.success("Unpacked!");
+      }
     } catch (e) {
-      toast.error("Update failed");
+      toast.error("Status update failed");
     }
   };
 
-  const handleTogglePacked = async () => {
+  const handleReset = async () => {
     try {
-      await togglePacked(item.id, !item.is_packed, tripId);
-      toast.success(item.is_packed ? "Un-packed" : "Packed!");
+       await togglePrepared(item.id, false, tripId);
+       await togglePacked(item.id, false, tripId);
+       toast.success("Reset to prepare");
     } catch (e) {
-      toast.error("Update failed");
+       toast.error("Reset failed");
     }
-  };
+  }
 
   const confirmDelete = async () => {
     try {
@@ -89,11 +100,11 @@ export function ItemCard({
       {/* Background Delete Button - Revealed on swipe */}
       <motion.div
         style={{ opacity }}
-        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-destructive text-destructive-foreground rounded-2xl cursor-pointer"
+        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-error text-on-error rounded-2xl cursor-pointer"
         onClick={() => setShowConfirm(true)}
       >
         <div className="flex flex-col items-center gap-1">
-          <Trash2 className="h-5 w-5" />
+          <span className="material-symbols-outlined mb-1">delete</span>
           <span className="text-[10px] font-bold uppercase">Hapus</span>
         </div>
       </motion.div>
@@ -104,134 +115,116 @@ export function ItemCard({
         dragControls={dragControls}
         dragConstraints={{ left: -100, right: 0 }}
         dragElastic={0.05}
-        onDragEnd={(_, info) => {
-          // If swiped significantly, snap to the revealed state
-          if (info.offset.x < -40) {
-            // Keep it open
-          } else {
-            // Spring back handled by motion
-          }
-        }}
         className={cn(
-          "relative z-10 flex items-center gap-3 p-4 bg-card border-l-4 transition-all shadow-sm rounded-2xl",
-          item.is_packed && "opacity-60 grayscale-[0.5]",
+          "relative z-10 flex items-center justify-between p-md border transition-all rounded-2xl",
+          status === "packed" 
+            ? "bg-primary-fixed/30 border-primary-fixed shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+            : status === "ready"
+              ? "bg-secondary-fixed/20 border-secondary shadow-sm"
+              : "bg-surface-container-lowest border-outline-variant/30 shadow-sm"
         )}
-        style={{ borderLeftColor: categoryColor || "transparent" }}
       >
-        <div
-          className="cursor-grab active:cursor-grabbing text-muted-foreground mr-1"
-          onPointerDown={(e) => dragControls.start(e)}
-        >
-          <GripVertical className="h-5 w-5" />
-        </div>
-
-        <div className="flex flex-col items-center gap-1 min-w-[32px]">
-          <button
-            onClick={handleTogglePrepared}
-            className={cn(
-              "flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all",
-              item.is_prepared
-                ? "bg-green-500 border-green-500 text-white"
-                : "border-muted-foreground/30 hover:border-green-500",
-            )}
+        <div className="flex items-center gap-md flex-1 min-w-0">
+          <button 
+            onClick={handleStatusChange}
+            className="flex-shrink-0 active:scale-90 transition-transform"
           >
-            {item.is_prepared && <Check className="h-4 w-4" />}
-          </button>
-        </div>
-
-        <div
-          className="flex-1 min-w-0"
-          onDoubleClick={() => setShowConfirm(true)}
-        >
-          <p
-            className={cn(
-              "font-medium truncate transition-all",
-              item.is_packed && "line-through text-muted-foreground",
-            )}
-          >
-            {item.name}
-          </p>
-          {item.notes && (
-            <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-              <Info className="h-3 w-3" /> {item.notes}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Badge
-            className={cn(
-              "text-[12px] font-bold uppercase tracking-tighter",
-              item.is_packed
-                ? "bg-primary text-white"
-                : item.is_prepared
-                  ? "bg-green-500 text-white"
-                  : "bg-amber-500 text-white",
-            )}
-          >
-            {item.is_packed ? "Packed" : item.is_prepared ? "Ready" : "Prepare"}
-          </Badge>
-
-          <Badge
-            variant="outline"
-            className={cn(
-              "rounded-full px-3 text-[10px] uppercase font-bold border-none",
-              item.owner === "me"
-                ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                : "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400",
-            )}
-          >
-            {item.owner}
-          </Badge>
-
-          <button
-            onClick={handleTogglePacked}
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-2xl transition-all shadow-md",
-              item.is_packed
-                ? "bg-primary text-primary-foreground scale-95"
-                : "bg-background border border-border hover:bg-muted",
-            )}
-          >
-            <Package
+            <span 
               className={cn(
-                "h-5 w-5",
-                !item.is_packed && "text-muted-foreground",
+                "material-symbols-outlined text-[32px]",
+                status === "packed" ? "text-primary" : status === "ready" ? "text-secondary" : "text-outline-variant"
               )}
-            />
+              style={{ fontVariationSettings: status !== "prepare" ? "'FILL' 1" : "'FILL' 0" }}
+            >
+              {status === "packed" ? "check_circle" : status === "ready" ? "inventory_2" : "radio_button_unchecked"}
+            </span>
           </button>
+          
+          <div className="flex-1 min-w-0" onPointerDown={(e) => dragControls.start(e)}>
+            <p className={cn(
+              "font-heading text-body-base font-semibold text-on-surface truncate",
+              status === "packed" && "line-through opacity-60"
+            )}>
+              {item.name}
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-tight",
+                item.owner?.toLowerCase() === "me" 
+                  ? "bg-primary-container text-on-primary-container"
+                  : "bg-secondary-container text-on-secondary-container"
+              )}>
+                {item.owner || "SHARED"}
+              </span>
+              <span className={cn(
+                "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-tight ml-1",
+                status === "packed" 
+                  ? "bg-primary/10 text-primary" 
+                  : status === "ready" 
+                    ? "bg-secondary/10 text-secondary" 
+                    : "bg-outline-variant/20 text-outline"
+              )}>
+                {status}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+           {status !== "prepare" && (
+             <button 
+               onClick={handleReset}
+               className="w-10 h-10 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
+             >
+                <span className="material-symbols-outlined text-[20px]">undo</span>
+             </button>
+           )}
+           <button 
+              onClick={handleStatusChange}
+              className={cn(
+                "px-4 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[12px] font-bold",
+                status === "packed" 
+                  ? "bg-primary text-on-primary" 
+                  : status === "ready" 
+                    ? "bg-secondary text-on-secondary shadow-lg shadow-secondary/20" 
+                    : "bg-surface-container-high text-on-surface"
+              )}
+            >
+              {status === "packed" ? "Unpack" : status === "ready" ? "Pack Now" : "Ready?"}
+            </button>
         </div>
       </motion.div>
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="max-w-[90vw] rounded-3xl">
-          <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-2">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
+        <DialogContent className="max-w-[400px] w-[90vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <div className="p-lg text-center space-y-md">
+            <div className="mx-auto w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-error text-[32px]">warning</span>
             </div>
-            <DialogTitle className="text-center">Hapus Barang?</DialogTitle>
-            <DialogDescription className="text-center">
-              Apakah Anda yakin ingin menghapus <strong>{item.name}</strong>?
-              Tindakan ini tidak dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirm(false)}
-              className="rounded-xl h-12"
-            >
-              Batal
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              className="rounded-xl h-12 shadow-lg shadow-destructive/20"
-            >
-              Ya, Hapus
-            </Button>
-          </DialogFooter>
+            <div>
+               <DialogTitle className="font-heading text-h1 font-bold text-on-surface">Hapus Barang?</DialogTitle>
+               <DialogDescription className="font-sans text-body-sm text-outline mt-2">
+                 Apakah Anda yakin ingin menghapus <strong>{item.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+               </DialogDescription>
+            </div>
+            <div className="flex flex-col gap-3 pt-4">
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                className="rounded-2xl h-14 font-heading font-bold shadow-lg shadow-error/20"
+              >
+                Ya, Hapus Sekarang
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setShowConfirm(false)}
+                className="rounded-2xl h-12 text-outline font-bold"
+              >
+                Batal
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

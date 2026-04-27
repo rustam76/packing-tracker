@@ -11,109 +11,141 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { createClient } from "@/lib/supabase/client";
+import { NavBar } from "@/components/nav-bar";
+import { BottomNav } from "@/components/bottom-nav";
+import { cn } from "@/lib/utils";
+
 export default function HomePage() {
   const router = useRouter();
   const { trips, loading } = useTrips();
-  const [newTitle, setNewTitle] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-
-  useEffect(() => {
-    // Check local storage for last active trip
-    const lastTripId = localStorage.getItem("lastTripId");
-    if (lastTripId) {
-      router.push(`/trip/${lastTripId}`);
-    }
-  }, [router]);
-
-  const handleCreate = async () => {
-    if (!newTitle.trim()) return;
-    setIsCreating(true);
-    try {
-      const trip = await createTrip(newTitle);
-      localStorage.setItem("lastTripId", trip.id);
-      router.push(`/trip/${trip.id}`);
-      toast.success("Trip created!");
-    } catch (e) {
-      toast.error("Failed to create trip");
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleSelectTrip = (id: string) => {
-    localStorage.setItem("lastTripId", id);
-    router.push(`/trip/${id}`);
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <Loader2 className="h-10 w-10 animate-spin text-primary opacity-20" />
       </div>
     );
   }
 
+  const activeTrip = trips[0]; 
+  const otherTrips = trips.slice(1);
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 flex flex-col items-center justify-center">
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md space-y-8"
-      >
-        <div className="text-center space-y-2">
-           <div className="inline-flex p-4 rounded-3xl bg-primary text-primary-foreground shadow-xl mb-4">
-              <Package2 className="h-8 w-8" />
-           </div>
-           <h1 className="text-4xl font-black tracking-tight italic">PACKING<span className="text-primary not-italic">TRACKER</span></h1>
-           <p className="text-muted-foreground">The ultimate companion for your next adventure.</p>
-        </div>
-
-        <Card className="border-none shadow-2xl bg-card/50 backdrop-blur-xl">
-          <CardHeader>
-            <CardTitle>Where are we going?</CardTitle>
-            <CardDescription>Start a new trip or continue an existing one.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input 
-                placeholder="Japan 2024..." 
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="rounded-xl h-12"
-              />
-              <Button onClick={handleCreate} disabled={isCreating || !newTitle.trim()} className="h-12 w-12 rounded-xl shrink-0 p-0">
-                {isCreating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-6 w-6" />}
-              </Button>
+    <div className="min-h-screen bg-surface pb-32">
+      <NavBar title="My Trips" icon="luggage" />
+      
+      <main className="pt-24 px-margin-mobile max-w-2xl mx-auto space-y-8 animate-in fade-in duration-700">
+        {trips.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+            <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center text-outline/30 mb-2">
+              <span className="material-symbols-outlined text-[64px]">explore_off</span>
             </div>
-
-            {trips.length > 0 && (
-              <div className="pt-4 border-t border-muted">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Recent Trips</p>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar">
-                  {trips.map((trip) => (
-                    <button
-                      key={trip.id}
-                      onClick={() => handleSelectTrip(trip.id)}
-                      className="w-full flex items-center justify-between p-4 rounded-2xl bg-muted/50 hover:bg-muted transition-all group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <MapPin className="h-5 w-5 text-primary opacity-50" />
-                        <span className="font-semibold">{trip.title}</span>
-                      </div>
-                      <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
-                    </button>
-                  ))}
+            <div className="space-y-2">
+              <h2 className="font-heading text-h1 font-bold text-on-surface">No trips yet?</h2>
+              <p className="font-sans text-body-sm text-outline max-w-[250px] mx-auto">
+                Start your adventure by creating your first packing list.
+              </p>
+            </div>
+            <Button 
+               onClick={() => setIsCreating(true)}
+               className="rounded-2xl h-14 px-8 font-heading font-bold shadow-lg shadow-primary/20"
+            >
+               Create New Trip
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Active Trip Section */}
+            {activeTrip && (
+              <section className="animate-in slide-in-from-bottom-2 duration-500">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="font-heading text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Active</span>
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 </div>
-              </div>
+                
+                <div 
+                  onClick={() => router.push(`/trip/${activeTrip.id}`)}
+                  className="group relative overflow-hidden bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <div className="h-32 w-full overflow-hidden bg-surface-container flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[64px] text-outline/20">map</span>
+                  </div>
+                  <div className="p-md space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-heading text-h2 font-bold text-on-surface">{activeTrip.title}</h3>
+                        <p className="font-sans text-body-sm text-outline">Current adventure</p>
+                      </div>
+                      <div className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                        <span className="font-heading text-[10px] font-bold">Planned</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
             )}
-          </CardContent>
-        </Card>
-        
-        <footer className="text-center text-xs text-muted-foreground pt-8">
-           &copy; 2024 Packing Tracker PWA. Optimized for mobile.
-        </footer>
-      </motion.div>
+
+            {/* Other Trips */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {otherTrips.map((trip, idx) => (
+                <div 
+                  key={trip.id}
+                  onClick={() => router.push(`/trip/${trip.id}`)}
+                  className={cn(
+                    "flex flex-col bg-surface-container-lowest rounded-2xl border border-outline-variant/30 shadow-sm p-md space-y-4 cursor-pointer active:scale-[0.98] transition-all animate-in fade-in slide-in-from-bottom-2",
+                    "hover:border-primary/20"
+                  )}
+                  style={{ animationDelay: `${(idx + 1) * 100}ms` }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-secondary text-[20px]">event</span>
+                    <span className="font-heading text-[10px] font-bold text-secondary uppercase tracking-wider">
+                      Trip Detail
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-heading text-h2 font-bold text-on-surface leading-tight">{trip.title}</h3>
+                    <p className="font-sans text-body-sm text-outline">Scheduled</p>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Add Trip Button */}
+              <div 
+                onClick={() => setIsCreating(true)}
+                className="flex flex-col items-center justify-center bg-surface border-2 border-dashed border-outline-variant/50 rounded-2xl p-md min-h-40 group cursor-pointer hover:border-primary/50 transition-all active:scale-[0.98]"
+              >
+                 <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-outline group-hover:bg-primary group-hover:text-on-primary transition-all">
+                    <span className="material-symbols-outlined text-[32px]">add</span>
+                 </div>
+                 <p className="font-heading text-body-sm font-bold text-outline mt-3 group-hover:text-primary">Create New Trip</p>
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Stats Section */}
+        <div className="bg-primary-fixed dark:bg-primary-container rounded-3xl p-lg flex items-center justify-between overflow-hidden relative shadow-lg shadow-primary/5">
+          <div className="relative z-10">
+            <p className="font-heading text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Traveler Profile</p>
+            <p className="font-heading text-h1 font-bold text-on-surface">{trips.length} Trips Organized</p>
+            <p className="font-sans text-body-sm text-on-surface-variant opacity-80 mt-1">Ready for the next adventure</p>
+          </div>
+          <span className="material-symbols-outlined text-[80px] text-primary opacity-5 absolute -right-4 -bottom-4">travel_explore</span>
+        </div>
+      </main>
+
+      <BottomNav />
+      
+      {/* FAB */}
+      <button 
+        onClick={() => setIsCreating(true)}
+        className="fixed bottom-28 right-6 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform z-40 group"
+      >
+        <span className="material-symbols-outlined text-[32px] group-hover:rotate-90 transition-transform duration-300">add</span>
+      </button>
     </div>
   );
 }

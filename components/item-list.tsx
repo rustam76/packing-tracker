@@ -89,25 +89,30 @@ export function ItemList({
         return (
           <div key={catId} className="space-y-3">
             <div 
-              className="flex items-center justify-between px-2 cursor-pointer group"
+              className="flex items-center justify-between px-2 mb-md cursor-pointer group"
               onClick={() => toggleCategory(catId)}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div 
-                  className="h-3 w-3 rounded-full" 
-                  style={{ backgroundColor: category?.color || "#cbd5e1" }} 
+                  className={cn(
+                    "h-2.5 w-2.5 rounded-full",
+                    !category?.color && "bg-outline-variant"
+                  )} 
+                  style={{ backgroundColor: category?.color }} 
                 />
-                <h3 className="font-bold text-base tracking-tight capitalize">
+                <h3 className="font-heading text-h2 font-semibold capitalize text-on-surface">
                   {category?.name || "Uncategorized"}
                 </h3>
-                <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground font-mono">
+                <span className="font-heading text-[11px] bg-surface-container-highest px-2 py-0.5 rounded-full text-on-surface-variant font-bold">
                   {packedCount}/{groupItems.length}
                 </span>
               </div>
-              <ChevronDown className={cn(
-                "h-4 w-4 text-muted-foreground transition-transform duration-300",
+              <span className={cn(
+                "material-symbols-outlined text-outline transition-transform duration-300",
                 isCollapsed && "-rotate-90"
-              )} />
+              )}>
+                {isCollapsed ? "expand_more" : "more_horiz"}
+              </span>
             </div>
 
             <AnimatePresence initial={false}>

@@ -86,60 +86,81 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {category ? "Edit Category" : "New Category"}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              placeholder="e.g. Toiletries"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+      <DialogContent className="sm:max-w-[425px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+        <div className="bg-surface p-lg space-y-xl">
+          <DialogHeader className="flex flex-row items-center justify-between space-y-0">
+            <DialogTitle className="font-heading text-h1 font-bold text-on-surface">
+              {category ? "Edit Category" : "New Category"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-lg">
+            <div className="space-y-sm">
+              <Label htmlFor="name" className="font-heading text-label-caps text-primary tracking-widest uppercase ml-1">Category Name</Label>
+              <Input
+                id="name"
+                placeholder="e.g. Essentials, Toiletries..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="rounded-2xl h-14 bg-surface-container-low border-outline-variant/30 focus:ring-primary shadow-sm"
+              />
+            </div>
+
+            <div className="space-y-sm">
+              <Label className="font-heading text-label-caps text-primary tracking-widest uppercase ml-1">Accent Color</Label>
+              <div className="grid grid-cols-4 gap-3 bg-surface-container-low p-md rounded-3xl border border-outline-variant/20">
+                {PRESET_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={`h-10 w-full rounded-2xl border-4 transition-all relative group flex items-center justify-center ${
+                      color === c ? "border-primary-container scale-105 shadow-md" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(c)}
+                  >
+                    {color === c && (
+                      <span className="material-symbols-outlined text-white text-[20px] font-bold">check</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label>Color</Label>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_COLORS.map((c) => (
-                <button
-                  key={c}
+
+          <div className="flex flex-col gap-3 pt-4">
+            <Button 
+              onClick={handleSave} 
+              disabled={loading || !name.trim()}
+              className="rounded-2xl h-14 font-heading font-bold shadow-lg shadow-primary/20"
+            >
+              <span className="material-symbols-outlined mr-2">save</span>
+              {category ? "Update Category" : "Create Category"}
+            </Button>
+            
+            <div className="flex gap-3">
+              {category && (
+                <Button
                   type="button"
-                  className={`h-8 w-8 rounded-full border-2 transition-all ${
-                    color === c ? "border-black scale-110 shadow-md" : "border-transparent"
-                  }`}
-                  style={{ backgroundColor: c }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
+                  variant="ghost"
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="flex-1 rounded-2xl h-12 text-error hover:bg-error/5 font-bold"
+                >
+                  <span className="material-symbols-outlined mr-2">delete</span>
+                  Delete
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                onClick={() => onOpenChange(false)}
+                className="flex-1 rounded-2xl h-12 text-outline font-bold"
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </div>
-        <DialogFooter className="flex-row items-center justify-between">
-          {category && (
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              onClick={handleDelete}
-              disabled={loading}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-          <div className="flex gap-2 ml-auto">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={loading}>
-              Save
-            </Button>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
