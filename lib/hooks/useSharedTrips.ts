@@ -30,7 +30,7 @@ export function useSharedTrips() {
         if (inviteError) throw inviteError;
 
         if (invitations && invitations.length > 0) {
-          const tripIds = invitations.map(i => i.trip_id);
+          const tripIds = invitations.map((i:any) => i.trip_id);
           
           // 3. Fetch trip details for those IDs
           const { data: trips, error: tripsError } = await supabase

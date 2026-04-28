@@ -81,14 +81,14 @@ export async function getTrips(): Promise<(Trip & { total_items: number; packed_
     
     if (fallbackError) throw new Error(fallbackError.message);
     
-    return (fallbackData || []).map(trip => ({
+    return (fallbackData || []).map((trip: any) => ({
       ...trip,
       total_items: trip.items?.length || 0,
       packed_items: trip.items?.filter((item: any) => item.is_packed).length || 0
     }));
   }
 
-  return (data || []).map(trip => ({
+  return (data || []).map((trip: any) => ({
     ...trip,
     total_items: trip.items?.length || 0,
     packed_items: trip.items?.filter((item: any) => item.is_packed).length || 0

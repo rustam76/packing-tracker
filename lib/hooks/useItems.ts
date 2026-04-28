@@ -50,7 +50,7 @@ export function useItems(tripId: string) {
             table: "items",
             filter: `trip_id=eq.${tripId}`,
           },
-          (payload) => {
+          (payload: any) => {
             if (payload.eventType === "INSERT") {
               setItems((prev) => [...prev, payload.new as Item]);
             } else if (payload.eventType === "UPDATE") {
