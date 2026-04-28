@@ -84,6 +84,19 @@
     --on-surface: 231 19% 91%;
     --surface-variant: 224 12% 29%;
     --on-surface-variant: 226 18% 80%;
+    --primary-fixed: 216 71% 15%;
+    --primary-fixed-dim: 216 71% 25%;
+    --secondary-fixed: 327 100% 15%;
+    --secondary-fixed-dim: 327 100% 25%;
+    --tertiary-fixed: 29 100% 15%;
+    --tertiary-fixed-dim: 29 100% 25%;
+    --surface-dim: 228 17% 8%;
+    --surface-bright: 228 17% 18%;
+    --surface-container-lowest: 228 17% 4%;
+    --surface-container-low: 228 17% 10%;
+    --surface-container: 228 17% 12%;
+    --surface-container-high: 228 17% 15%;
+    --surface-container-highest: 228 17% 20%;
     --outline: 228 7% 58%;
     --outline-variant: 224 12% 29%;
     --muted: 224 12% 29%;
@@ -104,23 +117,23 @@
   }
   
   .text-h1 {
-    @apply text-[24px] leading-[32px] tracking-tight;
+    @apply text-[18px] sm:text-[24px] leading-tight tracking-tight;
   }
   
   .text-h2 {
-    @apply text-[20px] leading-[26px];
+    @apply text-[16px] sm:text-[20px] leading-tight;
   }
   
   .text-body-base {
-    @apply text-[16px] leading-[24px];
+    @apply text-[14px] sm:text-[16px] leading-normal;
   }
   
   .text-body-sm {
-    @apply text-[14px] leading-[20px];
+    @apply text-[12px] sm:text-[14px] leading-normal;
   }
   
   .text-label-caps {
-    @apply text-[10px] font-bold tracking-[0.2em] uppercase;
+    @apply text-[9px] sm:text-[10px] font-bold tracking-[0.2em] uppercase;
   }
   
   .pb-safe {

@@ -13,29 +13,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createCategory, updateCategory, deleteCategory } from "@/lib/actions";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PRESET_COLORS = [
-  "#ef4444", // Red
-  "#f97316", // Orange
-  "#f59e0b", // Amber
-  "#10b981", // Emerald
-  "#0ea5e9", // Sky
-  "#6366f1", // Indigo
-  "#a855f7", // Purple
-  "#ec4899", // Pink
+  "#0058be", // Primary Blue
+  "#b90063", // Secondary Pink
+  "#8b4d00", // Tertiary Orange
+  "#006a6a", // Teal
+  "#4d616c", // Slate
+  "#6e5d0e", // Olive
+  "#a03f3f", // Red
+  "#5d5f00", // Lime
 ];
 
 export function CategoryDialog({
   tripId,
-  category,
   open,
   onOpenChange,
+  category,
 }: {
   tripId: string;
-  category?: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  category?: any;
 }) {
   const [name, setName] = useState("");
   const [color, setColor] = useState(PRESET_COLORS[0]);
@@ -44,7 +44,7 @@ export function CategoryDialog({
   useEffect(() => {
     if (category) {
       setName(category.name);
-      setColor(category.color);
+      setColor(category.color || PRESET_COLORS[0]);
     } else {
       setName("");
       setColor(PRESET_COLORS[0]);
@@ -56,15 +56,15 @@ export function CategoryDialog({
     setLoading(true);
     try {
       if (category) {
-        await updateCategory(category.id, name, color);
+        await updateCategory(category.id, { name, color }, tripId);
         toast.success("Category updated");
       } else {
-        await createCategory(tripId, name, color);
+        await createCategory({ trip_id: tripId, name, color });
         toast.success("Category created");
       }
       onOpenChange(false);
     } catch (e) {
-      toast.error("Error saving category");
+      toast.error("Failed to save category");
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,7 @@ export function CategoryDialog({
       toast.success("Category deleted");
       onOpenChange(false);
     } catch (e) {
-      toast.error("Error deleting category");
+      toast.error("Failed to delete category");
     } finally {
       setLoading(false);
     }
@@ -86,79 +86,63 @@ export function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-        <div className="bg-surface p-lg space-y-xl">
+      <DialogContent className="max-w-[300px] sm:max-w-[320px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+        <div className="bg-surface p-md space-y-lg">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0">
-            <DialogTitle className="font-heading text-h1 font-bold text-on-surface">
+            <DialogTitle className="font-heading text-h2 font-bold text-on-surface">
               {category ? "Edit Category" : "New Category"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-lg">
-            <div className="space-y-sm">
-              <Label htmlFor="name" className="font-heading text-label-caps text-primary tracking-widest uppercase ml-1">Category Name</Label>
+          <div className="space-y-md">
+            <div className="space-y-xs">
+              <Label htmlFor="name" className="font-heading text-[10px] font-bold text-primary tracking-widest uppercase ml-1">Name</Label>
               <Input
                 id="name"
-                placeholder="e.g. Essentials, Toiletries..."
+                placeholder="Essentials, etc..."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="rounded-2xl h-14 bg-surface-container-low border-outline-variant/30 focus:ring-primary shadow-sm"
+                className="rounded-xl h-11 bg-surface-container-low border-outline-variant/30 focus:ring-primary shadow-sm text-body-base"
               />
             </div>
 
-            <div className="space-y-sm">
-              <Label className="font-heading text-label-caps text-primary tracking-widest uppercase ml-1">Accent Color</Label>
-              <div className="grid grid-cols-4 gap-3 bg-surface-container-low p-md rounded-3xl border border-outline-variant/20">
+            <div className="space-y-xs">
+              <Label className="font-heading text-[10px] font-bold text-primary tracking-widest uppercase ml-1">Color</Label>
+              <div className="grid grid-cols-4 gap-2 bg-surface-container-low p-sm rounded-2xl border border-outline-variant/20">
                 {PRESET_COLORS.map((c) => (
                   <button
                     key={c}
                     type="button"
-                    className={`h-10 w-full rounded-2xl border-4 transition-all relative group flex items-center justify-center ${
-                      color === c ? "border-primary-container scale-105 shadow-md" : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
-                    style={{ backgroundColor: c }}
                     onClick={() => setColor(c)}
-                  >
-                    {color === c && (
-                      <span className="material-symbols-outlined text-white text-[20px] font-bold">check</span>
+                    className={cn(
+                      "h-8 w-full rounded-lg transition-all active:scale-90",
+                      color === c ? "ring-2 ring-primary ring-offset-2 ring-offset-surface" : "opacity-80 hover:opacity-100"
                     )}
-                  </button>
+                    style={{ backgroundColor: c }}
+                  />
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 pt-4">
-            <Button 
-              onClick={handleSave} 
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={handleSave}
               disabled={loading || !name.trim()}
-              className="rounded-2xl h-14 font-heading font-bold shadow-lg shadow-primary/20"
+              className="w-full h-11 rounded-xl font-heading font-bold shadow-lg shadow-primary/20"
             >
-              <span className="material-symbols-outlined mr-2">save</span>
-              {category ? "Update Category" : "Create Category"}
+              {loading ? "Saving..." : category ? "Update" : "Create"}
             </Button>
-            
-            <div className="flex gap-3">
-              {category && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="flex-1 rounded-2xl h-12 text-error hover:bg-error/5 font-bold"
-                >
-                  <span className="material-symbols-outlined mr-2">delete</span>
-                  Delete
-                </Button>
-              )}
-              <Button 
-                variant="ghost" 
-                onClick={() => onOpenChange(false)}
-                className="flex-1 rounded-2xl h-12 text-outline font-bold"
+            {category && (
+              <Button
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={loading}
+                className="w-full h-10 text-error hover:text-error hover:bg-error/10 font-bold"
               >
-                Cancel
+                Delete Category
               </Button>
-            </div>
+            )}
           </div>
         </div>
       </DialogContent>

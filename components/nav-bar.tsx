@@ -12,7 +12,7 @@ interface NavBarProps {
 
 export function NavBar({ title, icon = "travel", onAction, actionIcon = "expand_more" }: NavBarProps) {
   return (
-    <header className="fixed top-0 w-full z-50 flex items-center justify-between px-5 h-16 bg-surface-bright/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm border-b border-outline-variant/30">
+    <header className="fixed top-0 w-full z-50 flex items-center justify-between px-4 h-14 bg-surface-bright/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm border-b border-outline-variant/30">
       <div className="flex items-center gap-3">
         <span className="material-symbols-outlined text-primary text-[24px]" data-icon={icon}>
           {icon}

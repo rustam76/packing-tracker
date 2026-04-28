@@ -106,7 +106,7 @@ export function ItemCard({
           status === "packed" 
             ? "bg-primary-fixed/30 border-primary-fixed shadow-sm"
             : status === "ready"
-              ? "bg-secondary-fixed/20 border-secondary shadow-sm"
+              ? "bg-secondary/10 border-secondary/30 shadow-sm"
               : "bg-surface-container-lowest border-outline-variant/30 shadow-sm"
         )}
       >
@@ -163,7 +163,7 @@ export function ItemCard({
            {status !== "prepare" && (
              <button 
                onClick={handleReset}
-               className="w-10 h-10 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
+               className="w-9 h-9 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
              >
                 <Undo2 className="w-4 h-4" />
              </button>
@@ -173,10 +173,10 @@ export function ItemCard({
               className={cn(
                 "px-3 sm:px-4 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[12px] font-bold",
                 status === "packed" 
-                  ? "bg-primary text-on-primary" 
+                  ? "bg-primary text-on-primary text-white" 
                   : status === "ready" 
-                    ? "bg-secondary text-on-secondary shadow-lg shadow-secondary/20" 
-                    : "bg-surface-container-high text-on-surface"
+                    ? "bg-secondary text-on-secondary shadow-lg shadow-secondary/20 text-white" 
+                    : "bg-surface-container-high text-on-surface text-[12px]"
               )}
             >
               {status === "packed" ? "Unpack" : status === "ready" ? "Pack Now" : "Ready?"}

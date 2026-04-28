@@ -6,12 +6,15 @@ import { Category, Item, Trip } from "./types";
 
 // --- Trip Actions ---
 
-export async function createTrip(title: string): Promise<Trip> {
+export async function createTrip(title: string, departure_at?: string): Promise<Trip> {
   const supabase = await createClient();
   if (!supabase.from) throw new Error("Supabase not configured");
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from("trips")
-    .insert([{ title }])
+    .insert([{ title, departure_at, user_id: user?.id }])
     .select()
     .single();
 
@@ -20,26 +23,86 @@ export async function createTrip(title: string): Promise<Trip> {
   return data;
 }
 
-export async function getTrips(): Promise<Trip[]> {
+export async function updateTrip(id: string, updates: { title?: string; departure_at?: string }): Promise<Trip> {
   const supabase = await createClient();
-  if (!supabase.from) return [];
+  if (!supabase.from) throw new Error("Supabase not configured");
+  
   const { data, error } = await supabase
     .from("trips")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
 
   if (error) throw new Error(error.message);
-  return data || [];
+  revalidatePath("/");
+  revalidatePath(`/trip/${id}`);
+  return data;
+}
+
+export async function deleteTrip(id: string): Promise<void> {
+  const supabase = await createClient();
+  if (!supabase.from) throw new Error("Supabase not configured");
+  
+  const { error } = await supabase
+    .from("trips")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/");
+}
+
+export async function getTrips(): Promise<(Trip & { total_items: number; packed_items: number })[]> {
+  const supabase = await createClient();
+  if (!supabase.from) return [];
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from("trips")
+    .select(`
+      *,
+      items:items(id, is_packed)
+    `)
+    .eq("user_id", user?.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    // If sort_order doesn't exist yet, fallback to created_at
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("trips")
+      .select(`
+        *,
+        items:items(id, is_packed)
+      `)
+      .eq("user_id", user?.id)
+      .order("created_at", { ascending: false });
+    
+    if (fallbackError) throw new Error(fallbackError.message);
+    
+    return (fallbackData || []).map((trip: any) => ({
+      ...trip,
+      total_items: trip.items?.length || 0,
+      packed_items: trip.items?.filter((item: any) => item.is_packed).length || 0
+    }));
+  }
+
+  return (data || []).map((trip: any) => ({
+    ...trip,
+    total_items: trip.items?.length || 0,
+    packed_items: trip.items?.filter((item: any) => item.is_packed).length || 0
+  }));
 }
 
 // --- Category Actions ---
 
-export async function createCategory(trip_id: string, name: string, color: string): Promise<Category> {
+export async function createCategory(category: Partial<Category>): Promise<Category> {
   const supabase = await createClient();
   if (!supabase.from) throw new Error("Supabase not configured");
   const { data, error } = await supabase
     .from("categories")
-    .insert([{ trip_id, name, color }])
+    .insert([category])
     .select()
     .single();
 
@@ -48,12 +111,12 @@ export async function createCategory(trip_id: string, name: string, color: strin
   return data;
 }
 
-export async function updateCategory(id: string, name: string, color: string): Promise<Category> {
+export async function updateCategory(id: string, updates: Partial<Category>, trip_id: string): Promise<Category> {
   const supabase = await createClient();
   if (!supabase.from) throw new Error("Supabase not configured");
   const { data, error } = await supabase
     .from("categories")
-    .update({ name, color })
+    .update(updates)
     .eq("id", id)
     .select()
     .single();
