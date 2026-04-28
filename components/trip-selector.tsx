@@ -48,7 +48,7 @@ export function TripSelector({ activeTripId, onSelect }: { activeTripId?: string
     if (!tripTitle.trim() || !editingTrip) return;
     setIsProcessing(true);
     try {
-      await updateTrip(editingTrip.id, tripTitle);
+      await updateTrip(editingTrip.id, { title: tripTitle });
       setIsEditOpen(false);
       setEditingTrip(null);
       setTripTitle("");
