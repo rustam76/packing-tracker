@@ -50,7 +50,7 @@ export function useCategories(tripId: string) {
             table: "categories",
             filter: `trip_id=eq.${tripId}`,
           },
-          (payload) => {
+          (payload: any) => {
             if (payload.eventType === "INSERT") {
               setCategories((prev) => [...prev, payload.new as Category]);
             } else if (payload.eventType === "UPDATE") {

@@ -2,25 +2,10 @@
 
 import { Item } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import {
-  motion,
-  useDragControls,
-  AnimatePresence,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
-import {
-  Check,
-  Package,
-  Trash2,
-  GripVertical,
-  Info,
-  AlertTriangle,
-} from "lucide-react";
-import { Badge } from "./ui/badge";
-import { togglePacked, togglePrepared, deleteItem } from "@/lib/actions";
+import { motion, AnimatePresence } from "framer-motion";
+import { togglePacked, togglePrepared, deleteItem, updateItem } from "@/lib/actions";
 import { toast } from "sonner";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -30,22 +15,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Edit2, Trash2, Undo2, AlertCircle, CheckCircle2, Box, Circle } from "lucide-react";
 
 export function ItemCard({
   item,
   tripId,
   categoryColor,
   onDelete,
+  onUpdate,
 }: {
   item: Item;
   tripId: string;
   categoryColor?: string;
   onDelete?: (id: string) => void;
+  onUpdate?: (id: string, updates: Partial<Item>) => void;
 }) {
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const dragControls = useDragControls();
-  const constraintsRef = useRef(null);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState(item.name);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const status = item.is_packed 
     ? "packed" 
@@ -56,69 +45,66 @@ export function ItemCard({
   const handleStatusChange = async () => {
     try {
       if (status === "prepare") {
+        if (onUpdate) onUpdate(item.id, { is_prepared: true });
         await togglePrepared(item.id, true, tripId);
-        toast.success("Ready for packing!");
+        toast.success("Siap untuk dipacking!");
       } else if (status === "ready") {
+        if (onUpdate) onUpdate(item.id, { is_packed: true });
         await togglePacked(item.id, true, tripId);
-        toast.success("Packed!");
+        toast.success("Sudah dipacking!");
       } else if (status === "packed") {
+        if (onUpdate) onUpdate(item.id, { is_packed: false });
         await togglePacked(item.id, false, tripId);
-        toast.success("Unpacked!");
+        toast.success("Batal packing!");
       }
     } catch (e) {
-      toast.error("Status update failed");
+      toast.error("Gagal memperbarui status");
     }
   };
 
   const handleReset = async () => {
     try {
+       if (onUpdate) onUpdate(item.id, { is_prepared: false, is_packed: false });
        await togglePrepared(item.id, false, tripId);
        await togglePacked(item.id, false, tripId);
-       toast.success("Reset to prepare");
+       toast.success("Reset ke awal");
     } catch (e) {
-       toast.error("Reset failed");
+       toast.error("Gagal reset");
     }
   }
+
+  const handleUpdate = async () => {
+    if (!editName.trim() || isUpdating) return;
+    setIsUpdating(true);
+    try {
+      if (onUpdate) onUpdate(item.id, { name: editName.trim() });
+      await updateItem(item.id, { name: editName.trim() });
+      setShowEdit(false);
+      toast.success("Barang diperbarui!");
+    } catch (e) {
+      toast.error("Gagal memperbarui barang");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const confirmDelete = async () => {
     try {
       if (onDelete) onDelete(item.id);
-      setIsDeleting(true);
       setShowConfirm(false);
       await deleteItem(item.id, tripId);
     } catch (e) {
-      toast.error("Delete failed");
-      setIsDeleting(false);
+      toast.error("Gagal menghapus");
     }
   };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl mb-1"
-      ref={constraintsRef}
-    >
-      {/* Background Delete Button - Revealed on swipe */}
-      <motion.div
-        style={{ opacity }}
-        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center bg-error text-on-error rounded-2xl cursor-pointer"
-        onClick={() => setShowConfirm(true)}
-      >
-        <div className="flex flex-col items-center gap-1">
-          <span className="material-symbols-outlined mb-1">delete</span>
-          <span className="text-[10px] font-bold uppercase">Hapus</span>
-        </div>
-      </motion.div>
-
-      <motion.div
-        drag="x"
-        style={{ x }}
-        dragControls={dragControls}
-        dragConstraints={{ left: -100, right: 0 }}
-        dragElastic={0.05}
+    <div className="relative overflow-hidden rounded-2xl mb-1 group">
+      <div
         className={cn(
-          "relative z-10 flex items-center justify-between p-md border transition-all rounded-2xl",
+          "relative z-10 flex items-center justify-between p-md border transition-all duration-300 rounded-2xl",
           status === "packed" 
-            ? "bg-primary-fixed/30 border-primary-fixed shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+            ? "bg-primary-fixed/30 border-primary-fixed shadow-sm"
             : status === "ready"
               ? "bg-secondary-fixed/20 border-secondary shadow-sm"
               : "bg-surface-container-lowest border-outline-variant/30 shadow-sm"
@@ -129,18 +115,16 @@ export function ItemCard({
             onClick={handleStatusChange}
             className="flex-shrink-0 active:scale-90 transition-transform"
           >
-            <span 
-              className={cn(
-                "material-symbols-outlined text-[32px]",
-                status === "packed" ? "text-primary" : status === "ready" ? "text-secondary" : "text-outline-variant"
-              )}
-              style={{ fontVariationSettings: status !== "prepare" ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              {status === "packed" ? "check_circle" : status === "ready" ? "inventory_2" : "radio_button_unchecked"}
-            </span>
+            {status === "packed" ? (
+              <CheckCircle2 className="w-8 h-8 text-primary" />
+            ) : status === "ready" ? (
+              <Box className="w-8 h-8 text-secondary" />
+            ) : (
+              <Circle className="w-8 h-8 text-outline-variant" />
+            )}
           </button>
           
-          <div className="flex-1 min-w-0" onPointerDown={(e) => dragControls.start(e)}>
+          <div className="flex-1 min-w-0">
             <p className={cn(
               "font-heading text-body-base font-semibold text-on-surface truncate",
               status === "packed" && "line-through opacity-60"
@@ -150,14 +134,6 @@ export function ItemCard({
             <div className="flex items-center gap-2 mt-1">
               <span className={cn(
                 "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-tight",
-                item.owner?.toLowerCase() === "me" 
-                  ? "bg-primary-container text-on-primary-container"
-                  : "bg-secondary-container text-on-secondary-container"
-              )}>
-                {item.owner || "SHARED"}
-              </span>
-              <span className={cn(
-                "inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-tight ml-1",
                 status === "packed" 
                   ? "bg-primary/10 text-primary" 
                   : status === "ready" 
@@ -170,19 +146,32 @@ export function ItemCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+            <button 
+              onClick={() => setShowEdit(true)}
+              className="w-10 h-10 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+               <Edit2 className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setShowConfirm(true)}
+              className="w-10 h-10 flex items-center justify-center rounded-full text-error/70 hover:bg-error/10 transition-colors active:scale-90 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+               <Trash2 className="w-4 h-4" />
+            </button>
+            
            {status !== "prepare" && (
              <button 
                onClick={handleReset}
                className="w-10 h-10 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
              >
-                <span className="material-symbols-outlined text-[20px]">undo</span>
+                <Undo2 className="w-4 h-4" />
              </button>
            )}
            <button 
               onClick={handleStatusChange}
               className={cn(
-                "px-4 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[12px] font-bold",
+                "px-3 sm:px-4 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[12px] font-bold",
                 status === "packed" 
                   ? "bg-primary text-on-primary" 
                   : status === "ready" 
@@ -193,18 +182,52 @@ export function ItemCard({
               {status === "packed" ? "Unpack" : status === "ready" ? "Pack Now" : "Ready?"}
             </button>
         </div>
-      </motion.div>
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEdit} onOpenChange={setShowEdit}>
+        <DialogContent className="max-w-[400px] w-[90vw] rounded-[32px] p-8 border-none shadow-2xl bg-surface-container-low/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-h1 font-bold text-on-surface">Ubah Barang</DialogTitle>
+            <DialogDescription className="text-outline">Perbarui nama barang bawaan Anda.</DialogDescription>
+          </DialogHeader>
+          <div className="py-6">
+            <Input 
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="Nama barang..."
+              className="rounded-2xl h-14 bg-surface-container border-none focus:ring-4 focus:ring-primary/10 text-body-lg font-medium"
+            />
+          </div>
+          <DialogFooter className="flex flex-col gap-3">
+            <Button 
+              onClick={handleUpdate}
+              disabled={!editName.trim() || isUpdating}
+              className="rounded-2xl h-14 w-full font-bold text-body-base shadow-lg shadow-primary/20"
+            >
+              {isUpdating ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowEdit(false)}
+              className="rounded-2xl h-12 w-full text-outline font-bold"
+            >
+              Batal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent className="max-w-[400px] w-[90vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <div className="p-lg text-center space-y-md">
-            <div className="mx-auto w-16 h-16 rounded-full bg-error-container/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-error text-[32px]">warning</span>
+        <DialogContent className="max-w-[400px] w-[90vw] rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-surface-container-low/95 backdrop-blur-xl">
+          <div className="p-8 text-center space-y-6">
+            <div className="mx-auto w-20 h-20 rounded-full bg-error/10 flex items-center justify-center">
+              <AlertCircle className="w-10 h-10 text-error" />
             </div>
-            <div>
+            <div className="space-y-2">
                <DialogTitle className="font-heading text-h1 font-bold text-on-surface">Hapus Barang?</DialogTitle>
-               <DialogDescription className="font-sans text-body-sm text-outline mt-2">
+               <DialogDescription className="font-sans text-body-base text-outline">
                  Apakah Anda yakin ingin menghapus <strong>{item.name}</strong>? Tindakan ini tidak dapat dibatalkan.
                </DialogDescription>
             </div>
@@ -212,14 +235,14 @@ export function ItemCard({
               <Button
                 variant="destructive"
                 onClick={confirmDelete}
-                className="rounded-2xl h-14 font-heading font-bold shadow-lg shadow-error/20"
+                className="rounded-2xl h-14 font-heading font-bold shadow-lg shadow-error/20 text-body-base"
               >
                 Ya, Hapus Sekarang
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setShowConfirm(false)}
-                className="rounded-2xl h-12 text-outline font-bold"
+                className="rounded-2xl h-12 text-outline font-bold hover:bg-black/5"
               >
                 Batal
               </Button>

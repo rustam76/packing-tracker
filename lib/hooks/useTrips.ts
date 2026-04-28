@@ -46,7 +46,7 @@ export function useTrips() {
             schema: "public",
             table: "trips",
           },
-          (payload) => {
+          (payload: any) => {
             if (payload.eventType === "INSERT") {
               setTrips((prev) => [payload.new as Trip, ...prev]);
             } else if (payload.eventType === "UPDATE") {

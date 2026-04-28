@@ -19,13 +19,6 @@ export function FilterBar({
           <TabsTrigger value="packed" className="rounded-full text-xs sm:text-sm">Packed</TabsTrigger>
           <TabsTrigger value="unpacked" className="rounded-full text-xs sm:text-sm">Left</TabsTrigger>
         </TabsList>
-        <div className="mt-2 flex justify-center gap-2">
-           <TabsList className="bg-muted/30 p-1 rounded-full h-8">
-              <TabsTrigger value="all" onSelect={() => onChange('all')} className="rounded-full px-4 h-6 text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Global</TabsTrigger>
-              <TabsTrigger value="me" className="rounded-full px-4 h-6 text-xs data-[state=active]:bg-blue-500 data-[state=active]:text-white">Me</TabsTrigger>
-              <TabsTrigger value="partner" className="rounded-full px-4 h-6 text-xs data-[state=active]:bg-pink-500 data-[state=active]:text-white">Partner</TabsTrigger>
-           </TabsList>
-        </div>
       </Tabs>
     </div>
   );

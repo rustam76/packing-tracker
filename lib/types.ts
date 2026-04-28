@@ -1,5 +1,3 @@
-export type Owner = "me" | "partner";
-
 export interface Trip {
   id: string;
   title: string;
@@ -22,10 +20,9 @@ export interface Item {
   is_prepared: boolean;
   is_packed: boolean;
   notes: string | null;
-  owner: Owner;
   created_at: string;
   // Joined
   category?: Category;
 }
 
-export type FilterType = "all" | "prepared" | "packed" | "unpacked" | "me" | "partner";
+export type FilterType = "all" | "prepared" | "packed" | "unpacked";

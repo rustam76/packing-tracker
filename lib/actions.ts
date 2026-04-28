@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { Category, Item, Trip, Owner } from "./types";
+import { Category, Item, Trip } from "./types";
 
 // --- Trip Actions ---
 
@@ -44,7 +44,7 @@ export async function createCategory(trip_id: string, name: string, color: strin
     .single();
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${trip_id}`);
+  revalidatePath("/");
   return data;
 }
 
@@ -59,7 +59,7 @@ export async function updateCategory(id: string, name: string, color: string): P
     .single();
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${data.trip_id}`);
+  revalidatePath("/");
   return data;
 }
 
@@ -68,7 +68,7 @@ export async function deleteCategory(id: string, trip_id: string): Promise<void>
   if (!supabase.from) throw new Error("Supabase not configured");
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${trip_id}`);
+  revalidatePath("/");
 }
 
 // --- Item Actions ---
@@ -83,7 +83,7 @@ export async function createItem(item: Partial<Item>): Promise<Item> {
     .single();
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${item.trip_id}`);
+  revalidatePath("/");
   return data;
 }
 
@@ -98,7 +98,7 @@ export async function updateItem(id: string, updates: Partial<Item>): Promise<It
     .single();
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${data.trip_id}`);
+  revalidatePath("/");
   return data;
 }
 
@@ -107,7 +107,7 @@ export async function deleteItem(id: string, trip_id: string): Promise<void> {
   if (!supabase.from) throw new Error("Supabase not configured");
   const { error } = await supabase.from("items").delete().eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${trip_id}`);
+  revalidatePath("/");
 }
 
 export async function togglePrepared(id: string, is_prepared: boolean, trip_id: string): Promise<void> {
@@ -118,7 +118,7 @@ export async function togglePrepared(id: string, is_prepared: boolean, trip_id: 
     .update({ is_prepared })
     .eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${trip_id}`);
+  revalidatePath("/");
 }
 
 export async function togglePacked(id: string, is_packed: boolean, trip_id: string): Promise<void> {
@@ -129,5 +129,5 @@ export async function togglePacked(id: string, is_packed: boolean, trip_id: stri
     .update({ is_packed })
     .eq("id", id);
   if (error) throw new Error(error.message);
-  revalidatePath(`/trip/${trip_id}`);
+  revalidatePath("/");
 }
