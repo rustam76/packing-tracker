@@ -2,12 +2,50 @@
 
 import { NavBar } from "@/components/nav-bar";
 import { BottomNav } from "@/components/bottom-nav";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/theme-toggle"; // Assuming this exists or I'll use simple buttons
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useTrips } from "@/lib/hooks/useTrips";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("profile");
+  const router = useRouter();
+  const { trips } = useTrips();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    getProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push("/login");
+      toast.success("Logged out successfully");
+    } catch (e) {
+      toast.error("Failed to logout");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <Loader2 className="w-8 h-8 animate-spin text-primary opacity-20" />
+      </div>
+    );
+  }
+
+  const userInitial = user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "U";
+  const fullName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Traveler";
 
   return (
     <div className="min-h-screen bg-surface pb-32">
@@ -17,20 +55,24 @@ export default function SettingsPage() {
         {/* User Card */}
         <section className="bg-surface-container-lowest rounded-3xl p-lg border border-outline-variant/30 shadow-sm flex flex-col items-center text-center gap-md">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-surface shadow-lg">
-              <img 
-                src="https://lh3.googleusercontent.com/a/ACg8ocL_pX-R-gD6-Y_Xf5-v9S-X-G-9-v-X-G-9-v-X-G-9-v=s96-c" 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-surface shadow-lg bg-primary-container flex items-center justify-center text-on-primary-container text-4xl font-heading font-bold">
+              {user?.user_metadata?.avatar_url ? (
+                <img 
+                  src={user.user_metadata.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                userInitial
+              )}
             </div>
             <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg border-2 border-surface">
               <span className="material-symbols-outlined text-[16px]">edit</span>
             </button>
           </div>
           <div>
-            <h2 className="font-heading text-h1 font-bold text-on-surface">Rustam G.</h2>
-            <p className="font-sans text-body-sm text-outline">Pro Explorer • 12 Trips</p>
+            <h2 className="font-heading text-h1 font-bold text-on-surface">{fullName}</h2>
+            <p className="font-sans text-body-sm text-outline">Explorer • {trips.length} Trips</p>
           </div>
         </section>
 
@@ -39,9 +81,12 @@ export default function SettingsPage() {
            <div>
              <h3 className="font-heading text-label-caps text-primary tracking-widest uppercase mb-md ml-1">Account & Security</h3>
              <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/30 shadow-sm overflow-hidden divide-y divide-outline-variant/10">
-               <SettingItem icon="person" label="Personal Information" value="rustam@example.com" />
+               <SettingItem 
+                 icon="person" 
+                 label="Personal Information" 
+                 value={user?.email || "No email linked"} 
+               />
                <SettingItem icon="notifications" label="Notifications" value="Enabled" />
-               <SettingItem icon="security" label="Two-Step Verification" value="Active" badge="SECURE" />
              </div>
            </div>
 
@@ -57,14 +102,15 @@ export default function SettingsPage() {
                   </div>
                   <ThemeToggle />
                </div>
-               <SettingItem icon="language" label="Language" value="English (US)" />
-               <SettingItem icon="distance" label="Measurement Units" value="Metric (kg/cm)" />
              </div>
            </div>
 
-           <button className="w-full flex items-center justify-center gap-3 p-lg bg-error-container/10 border border-error-container/20 text-error rounded-3xl hover:bg-error-container/20 transition-all font-heading font-bold">
+           <button 
+             onClick={handleLogout}
+             className="w-full flex items-center justify-center gap-3 p-lg bg-error-container/10 border border-error-container/20 text-error rounded-3xl hover:bg-error-container/20 transition-all font-heading font-bold"
+           >
              <span className="material-symbols-outlined">logout</span>
-             Logout from Google
+             Logout from Account
            </button>
         </div>
       </main>

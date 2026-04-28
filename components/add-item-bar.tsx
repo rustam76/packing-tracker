@@ -48,11 +48,11 @@ export function AddItemBar({
   };
 
   return (
-    <div className="fixed bottom-20 left-0 w-full px-margin-mobile z-50 pointer-events-none">
-      <div className="max-w-xl mx-auto pointer-events-auto bg-surface-container border border-outline-variant/30 rounded-full h-14 flex items-center px-md shadow-2xl backdrop-blur-xl">
+    <div className="fixed bottom-[80px] left-0 w-full px-margin-mobile z-50 pointer-events-none">
+      <div className="max-w-xl mx-auto pointer-events-auto bg-surface-container border border-outline-variant/30 rounded-full h-12 flex items-center px-sm shadow-2xl backdrop-blur-xl">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-             <button className="flex-shrink-0 active:scale-95 transition-transform mr-md">
+             <button className="flex-shrink-0 active:scale-95 transition-transform mr-sm">
                <span className="material-symbols-outlined text-outline" data-icon="add_circle">
                 add_circle
                </span>
@@ -94,9 +94,9 @@ export function AddItemBar({
           <button
             onClick={handleAdd}
             disabled={!name.trim() || loading}
-            className="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-lg active:scale-90 transition-all disabled:opacity-50"
+            className="w-9 h-9 flex items-center justify-center bg-primary text-on-primary rounded-full shadow-lg active:scale-90 transition-all disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-[20px]" data-icon="send">
+            <span className="material-symbols-outlined text-[18px]" data-icon="send">
               {loading ? "sync" : "send"}
             </span>
           </button>

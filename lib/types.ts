@@ -3,6 +3,8 @@ export type Owner = "me" | "partner";
 export interface Trip {
   id: string;
   title: string;
+  departure_at: string | null;
+  sort_order: number;
   created_at: string;
 }
 

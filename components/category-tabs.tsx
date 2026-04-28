@@ -38,7 +38,7 @@ export function CategoryTabs({
         <button
           onClick={() => onSelect(null)}
           className={cn(
-            "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[12px] font-bold uppercase tracking-wider",
+            "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[10px] font-bold uppercase tracking-wider",
             !activeCategoryId
               ? "bg-primary text-on-primary shadow-md"
               : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
@@ -51,7 +51,7 @@ export function CategoryTabs({
             key={category.id}
             onClick={() => onSelect(category.id)}
             className={cn(
-              "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[12px] font-bold uppercase tracking-wider",
+              "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[10px] font-bold uppercase tracking-wider",
               activeCategoryId === category.id
                 ? "bg-primary text-on-primary shadow-md"
                 : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
@@ -69,7 +69,7 @@ export function CategoryTabs({
                 activeCategoryId === category.id ? "bg-white/20" : "bg-surface-container-highest"
               )}
             >
-              <span className="material-symbols-outlined text-[14px]">settings</span>
+              <span className="material-symbols-outlined text-[11px]">settings</span>
             </span>
           </button>
         ))}

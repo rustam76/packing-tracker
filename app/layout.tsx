@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { PWAInstaller } from "@/components/pwa-installer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -44,6 +46,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <PWAInstaller />
           <MissingKeysUI />
           <Toaster position="top-center" />
         </ThemeProvider>

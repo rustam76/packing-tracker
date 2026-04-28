@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import Image from "next/image";
+import logo from "@/public/go.svg";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,9 @@ export default function LoginPage() {
             </span>
           </div>
           <div className="text-center animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <h1 className="font-heading text-h1 text-on-surface">Welcome Back</h1>
+            <h1 className="font-heading text-h1 text-on-surface">
+              Welcome Back
+            </h1>
             <p className="font-sans text-body-sm text-on-surface-variant mt-xs">
               Sign in with your Google account to continue
             </p>
@@ -48,10 +52,12 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 bg-surface border border-outline-variant py-4 px-md rounded-xl hover:bg-surface-container-low active:scale-[0.98] transition-all shadow-sm disabled:opacity-50"
             >
-              <img
-                alt="Google"
-                className="w-6 h-6"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1b9OUfowsXvuo3Lp0JSbfI5JIO4eYvpKzUGja6eNWDpafCur5Zq5RTvB0PYjpxwIkPYwYiZ76_Ge7AaUb3K15KygnbDqlSp_uiU20TUJU-5Zh4WFaCOrx14Qv-kfQl6M783b84wW2V5q6QmchX9THdgyMfEx1mPSkX0_tQGAfD_vd1YTwfr6cLuE9Z665z9zmmZCjmTUqdNGJTbc2dCQGN_oNw1pcxDKIDpBwwCTNg3sQAKUcyrVHKVb1WZKcRUuNRXourRPed3E"
+              <Image 
+                src={logo}
+                alt="Google" 
+                width={24} 
+                height={24} 
+                priority
               />
               <span className="font-heading text-body-base font-semibold text-on-surface">
                 {loading ? "Connecting..." : "Continue with Google"}
@@ -67,13 +73,6 @@ export default function LoginPage() {
               Sign up
             </a>
           </p>
-          <div className="relative w-full h-40 overflow-hidden rounded-2xl grayscale opacity-30 pointer-events-none">
-            <img
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuANxCED2J2ikLjXSt4tw-6B534ShO5-nf7WlvO--7Xku4GldUopQToGF2-S3P2_GC6qw9F88mFPuhFYp09D285hmhAWH9-Z5Bn04SBKvSD8i6Pc6aKMpX3fHfauqfQTYISPXEKIbLEuogqKu4PuIS8U3PHCax4QUcOHs_4yvAr6SRlBXpoSpNcSYunEC-uDRFuml87z5g_k6mAI1tjcePYj6FyASD9UEKhkyLWjkd8RofWDoHg4JzwdbzAUmtUwHUS-AlXF05xEEBs"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
-          </div>
         </footer>
       </div>
     </div>

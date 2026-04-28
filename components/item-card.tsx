@@ -46,6 +46,8 @@ export function ItemCard({
   const [showConfirm, setShowConfirm] = useState(false);
   const dragControls = useDragControls();
   const constraintsRef = useRef(null);
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
 
   const status = item.is_packed 
     ? "packed" 
@@ -118,9 +120,9 @@ export function ItemCard({
         className={cn(
           "relative z-10 flex items-center justify-between p-md border transition-all rounded-2xl",
           status === "packed" 
-            ? "bg-primary-fixed/30 border-primary-fixed shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+            ? "bg-primary/10 border-primary/30 shadow-[0_2px_10px_rgba(0,0,0,0.02)]"
             : status === "ready"
-              ? "bg-secondary-fixed/20 border-secondary shadow-sm"
+              ? "bg-secondary/10 border-secondary/30 shadow-sm"
               : "bg-surface-container-lowest border-outline-variant/30 shadow-sm"
         )}
       >
@@ -131,7 +133,7 @@ export function ItemCard({
           >
             <span 
               className={cn(
-                "material-symbols-outlined text-[32px]",
+                "material-symbols-outlined text-[28px]",
                 status === "packed" ? "text-primary" : status === "ready" ? "text-secondary" : "text-outline-variant"
               )}
               style={{ fontVariationSettings: status !== "prepare" ? "'FILL' 1" : "'FILL' 0" }}
@@ -170,24 +172,24 @@ export function ItemCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
            {status !== "prepare" && (
              <button 
                onClick={handleReset}
-               className="w-10 h-10 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
+               className="w-9 h-9 flex items-center justify-center rounded-full text-outline hover:bg-surface-container-high transition-colors active:scale-90"
              >
-                <span className="material-symbols-outlined text-[20px]">undo</span>
+                <span className="material-symbols-outlined text-[18px]">undo</span>
              </button>
            )}
            <button 
               onClick={handleStatusChange}
               className={cn(
-                "px-4 h-10 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[12px] font-bold",
+                "px-3 h-9 flex items-center justify-center rounded-2xl transition-all active:scale-95 font-heading text-[11px] font-bold",
                 status === "packed" 
-                  ? "bg-primary text-on-primary" 
+                  ? "bg-primary text-on-primary text-white" 
                   : status === "ready" 
-                    ? "bg-secondary text-on-secondary shadow-lg shadow-secondary/20" 
-                    : "bg-surface-container-high text-on-surface"
+                    ? "bg-secondary text-on-secondary shadow-lg shadow-secondary/20 text-white" 
+                    : "bg-surface-container-high text-on-surface text-[12px]"
               )}
             >
               {status === "packed" ? "Unpack" : status === "ready" ? "Pack Now" : "Ready?"}
