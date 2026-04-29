@@ -1,30 +1,20 @@
-export interface Trip {
+export interface Category {
   id: string;
-  title: string;
-  departure_at: string | null;
-  sort_order: number;
+  name: string;
   created_at: string;
 }
 
-export interface Category {
-  id: string;
-  trip_id: string;
-  name: string;
-  color: string;
-  created_at: string;
-}
+export type ItemStatus = "prepare" | "ready" | "packing" | "unpacked";
 
 export interface Item {
   id: string;
-  trip_id: string;
   category_id: string | null;
   name: string;
-  is_prepared: boolean;
-  is_packed: boolean;
+  status: ItemStatus;
   notes: string | null;
   created_at: string;
   // Joined
   category?: Category;
 }
 
-export type FilterType = "all" | "prepared" | "packed" | "unpacked";
+export type FilterType = "all" | ItemStatus;

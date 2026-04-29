@@ -1,91 +1,75 @@
 "use client";
 
 import { useCategories } from "@/lib/hooks/useCategories";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Plus, Settings2 } from "lucide-react";
-import { Button } from "./ui/button";
-import { CategoryDialog } from "./category-dialog";
+import { Plus, Hash } from "lucide-react";
 import { useState } from "react";
+import { CategoryDialog } from "./category-dialog";
 
 export function CategoryTabs({
-  tripId,
   activeCategoryId,
   onSelect,
 }: {
-  tripId: string;
   activeCategoryId: string | null;
   onSelect: (id: string | null) => void;
 }) {
-  const { categories } = useCategories(tripId);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { categories, loading, refresh } = useCategories();
+  const [showDialog, setShowDialog] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
 
-  const handleOpenCreate = () => {
-    setEditingCategory(null);
-    setIsDialogOpen(true);
+  const handleEdit = (cat: any) => {
+    setEditingCategory(cat);
+    setShowDialog(true);
   };
 
-  const handleOpenEdit = (e: React.MouseEvent, category: any) => {
-    e.stopPropagation();
-    setEditingCategory(category);
-    setIsDialogOpen(true);
+  const handleCreate = () => {
+    setEditingCategory(null);
+    setShowDialog(true);
   };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-sm overflow-x-auto no-scrollbar -mx-margin-mobile px-margin-mobile pb-2">
+    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <button
+        onClick={() => onSelect(null)}
+        className={cn(
+          "flex items-center gap-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap",
+          activeCategoryId === null
+            ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+            : "bg-surface-container-low text-outline hover:bg-surface-container hover:text-on-surface"
+        )}
+      >
+        <Hash className="w-4 h-4" />
+        Semua
+      </button>
+
+      {categories.map((cat) => (
         <button
-          onClick={() => onSelect(null)}
+          key={cat.id}
+          onClick={() => onSelect(cat.id)}
+          onDoubleClick={() => handleEdit(cat)}
           className={cn(
-            "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[10px] font-bold uppercase tracking-wider",
-            !activeCategoryId
-              ? "bg-primary text-on-primary shadow-md"
-              : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
+            "flex items-center gap-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap",
+            activeCategoryId === cat.id
+              ? "bg-surface-container-high text-on-surface shadow-md ring-2 ring-primary/20"
+              : "bg-surface-container-low text-outline hover:bg-surface-container"
           )}
         >
-          All
+          {cat.name}
         </button>
-        {categories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => onSelect(category.id)}
-            className={cn(
-              "flex items-center gap-2 px-md py-sm rounded-full whitespace-nowrap transition-all font-heading text-[10px] font-bold uppercase tracking-wider",
-              activeCategoryId === category.id
-                ? "bg-primary text-on-primary shadow-md"
-                : "bg-surface-container-lowest border border-outline-variant/30 text-on-surface"
-            )}
-          >
-            <div
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: category.color }}
-            />
-            <span>{category.name}</span>
-            <span 
-              onClick={(e) => handleOpenEdit(e, category)}
-              className={cn(
-                "px-1.5 py-0.5 rounded-full text-[10px] transition-colors",
-                activeCategoryId === category.id ? "bg-white/20" : "bg-surface-container-highest"
-              )}
-            >
-              <span className="material-symbols-outlined text-[11px]">settings</span>
-            </span>
-          </button>
-        ))}
-        <button
-          onClick={handleOpenCreate}
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-lowest border border-dashed border-outline-variant text-outline active:scale-90 transition-all shrink-0"
-        >
-          <span className="material-symbols-outlined">add</span>
-        </button>
-      </div>
+      ))}
+
+      <button
+        onClick={handleCreate}
+        className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+      >
+        <Plus className="w-5 h-5" />
+      </button>
 
       <CategoryDialog
-        tripId={tripId}
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        open={showDialog}
+        onOpenChange={setShowDialog}
         category={editingCategory}
+        onSuccess={() => refresh()}
       />
     </div>
   );

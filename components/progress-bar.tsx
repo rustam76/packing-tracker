@@ -36,16 +36,14 @@ export function ProgressBar({
       </div>
       
       {/* ProgressBar component as used in content cards */}
-      {!isSticky && (
-        <div className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden shadow-inner border border-outline-variant/10">
-          <motion.div
-            className="h-full bg-primary rounded-full shadow-[0_0_12px_rgba(var(--primary-rgb,0,88,190),0.3)]"
-            initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
-      )}
+      <div className="h-2.5 w-full bg-surface-container-high rounded-full overflow-hidden shadow-inner border border-outline-variant/20">
+        <motion.div
+          className="h-full bg-primary rounded-full shadow-[0_0_12px_rgba(var(--primary-rgb,0,88,190),0.4)]"
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
     </div>
   );
 }

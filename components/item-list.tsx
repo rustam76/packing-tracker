@@ -1,56 +1,49 @@
 "use client";
 
-import { Category, FilterType, Item } from "@/lib/types";
+import { Item, FilterType, Category } from "@/lib/types";
 import { ItemCard } from "./item-card";
-import { motion, AnimatePresence } from "framer-motion";
-import { useCategories } from "@/lib/hooks/useCategories";
-import { ChevronDown, Package2, Ghost } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { ChevronDown, ChevronRight, Hash } from "lucide-react";
+import { useCategories } from "@/lib/hooks/useCategories";
 
 export function ItemList({
   items,
-  tripId,
-  filter,
   onItemsChange,
+  activeCategoryId,
 }: {
   items: Item[];
-  tripId: string;
-  filter: FilterType;
+  onItemsChange: (items: Item[]) => void;
   activeCategoryId: string | null;
-  onItemsChange: (items: Item[] | ((prev: Item[]) => Item[])) => void;
 }) {
-  const { categories } = useCategories(tripId);
+  const { categories } = useCategories();
+  const [filter, setFilter] = useState<FilterType>("all");
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
-  // Sort items by status: Prepare (0) > Ready (1) > Packed (2)
-  const sortedItems = [...items].sort((a, b) => {
-    const getStatusRank = (item: Item) => {
-      if (item.is_packed) return 2;
-      if (item.is_prepared) return 1;
-      return 0;
-    };
-    return getStatusRank(a) - getStatusRank(b);
-  });
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (activeCategoryId && item.category_id !== activeCategoryId) return false;
+      if (filter !== "all" && item.status !== filter) return false;
+      return true;
+    });
+  }, [items, filter, activeCategoryId]);
 
-  // Filter items
-  const filteredItems = sortedItems.filter((item) => {
-    // Category filter
-    if (activeCategoryId && item.category_id !== activeCategoryId) return false;
-    if (filter === "prepared" && !item.is_prepared) return false;
-    if (filter === "packed" && !item.is_packed) return false;
-    if (filter === "unpacked" && item.is_packed) return false;
+  const stats = {
+    total: items.length,
+    prepare: items.filter(i => i.status === "prepare").length,
+    ready: items.filter(i => i.status === "ready").length,
+    packing: items.filter(i => i.status === "packing").length,
+    unpacked: items.filter(i => i.status === "unpacked").length,
+  };
 
-    return true;
-  });
-
-  // Group by category
-  const groups = filteredItems.reduce((acc, item) => {
-    const catId = item.category_id || "uncategorized";
-    if (!acc[catId]) acc[catId] = [];
-    acc[catId].push(item);
-    return acc;
-  }, {} as Record<string, Item[]>);
+  const groups = useMemo(() => {
+    return filteredItems.reduce((acc, item) => {
+      const catId = item.category_id || "uncategorized";
+      if (!acc[catId]) acc[catId] = [];
+      acc[catId].push(item);
+      return acc;
+    }, {} as Record<string, Item[]>);
+  }, [filteredItems]);
 
   const toggleCategory = (id: string) => {
     const next = new Set(collapsedCategories);
@@ -59,85 +52,56 @@ export function ItemList({
     setCollapsedCategories(next);
   };
 
-  if (filteredItems.length === 0) {
+  if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-        <div className="bg-muted/30 rounded-full p-6 mb-4">
-           <Ghost className="h-12 w-12 opacity-20" />
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center space-y-4 bg-surface-container-low/30 rounded-[32px] border-2 border-dashed border-outline-variant/30">
+        <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center">
+          <Hash className="w-10 h-10 text-outline/30" />
         </div>
-        <p className="text-lg font-medium">Nothing found</p>
-        <p className="text-sm">Try changing filters or add some items!</p>
+        <div className="space-y-1">
+          <p className="text-on-surface font-bold text-h2">Belum ada barang</p>
+          <p className="text-outline text-body-base max-w-[240px]">Tambah barang bawaan Anda untuk memulai tracking.</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="pb-32 space-y-8">
+      {/* Filter Tabs */}
+      
+
       {Object.entries(groups).map(([catId, groupItems]) => {
         const category = categories.find((c) => c.id === catId);
         const isCollapsed = collapsedCategories.has(catId);
-        const packedCount = groupItems.filter(i => i.is_packed).length;
-
+        
         return (
-          <div key={catId} className="space-y-4">
-            {/* Header Kategori */}
-            <div 
-              className="flex items-center justify-between px-2 cursor-pointer group select-none"
+          <div key={catId} className="space-y-3">
+            <button 
               onClick={() => toggleCategory(catId)}
+              className="flex items-center gap-2 group/header w-full text-left"
             >
-              <div className="flex items-center gap-3">
-                <div 
-                  className={cn(
-                    "h-3 w-3 rounded-full shadow-sm",
-                    !category?.color && "bg-outline-variant"
-                  )} 
-                  style={{ backgroundColor: category?.color }} 
-                />
-                <h3 className="font-heading text-body-base font-bold capitalize text-on-surface">
-                  {category?.name || "Uncategorized"}
-                </h3>
-                <span className="font-heading text-[10px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">
-                  {packedCount} / {groupItems.length}
-                </span>
+              <span className="font-heading text-h3 font-black text-on-surface flex-1">
+                {category?.name || "Tanpa Kategori"}
+                <span className="ml-2 text-outline/50 font-bold">{groupItems.length}</span>
+              </span>
+              <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-outline group-hover/header:bg-surface-container transition-colors">
+                {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </div>
-              <div className="text-outline group-hover:text-primary transition-colors">
-                 {isCollapsed ? <ChevronDown size={18} /> : <MoreHorizontal size={18} />}
-              </div>
-            </div>
+            </button>
 
-            <AnimatePresence initial={false}>
-              {!isCollapsed && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden space-y-1"
-                >
-                  {groupItems.map((item) => (
-                    <motion.div 
-                      key={item.id}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                    >
-                      <ItemCard 
-                        item={item} 
-                        tripId={tripId} 
-                        categoryColor={category?.color}
-                        onDelete={(id) => {
-                          onItemsChange(prev => prev.filter(i => i.id !== id));
-                        }}
-                        onUpdate={(id, updates) => {
-                          onItemsChange(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
-                        }}
-                      />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {!isCollapsed && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                {groupItems.map((item) => (
+                  <ItemCard
+                    key={item.id}
+                    item={item}
+                    onDelete={(id) => onItemsChange(items.filter(i => i.id !== id))}
+                    onUpdate={(id, updates) => onItemsChange(items.map(i => i.id === id ? { ...i, ...updates } : i))}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         );
       })}
